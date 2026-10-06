@@ -30,7 +30,10 @@ cd backend && dotnet test
 cd frontend && pnpm test
 ```
 
+## Requerimientos
+El PRD vigente es [PRD2.md](PRD2.md). Los códigos RF/RNF/AC de este archivo refieren a él.
+
 ## Qué NO hacer
 - No guardar contraseñas en texto plano: siempre persistirlas con hash seguro (RNF-04).
-- No modificar retroactivamente los registros de meses anteriores al editar un gasto recurrente (RF-06/RF-17).
-- No pre-generar registros de meses futuros para gastos recurrentes: se proyectan al consultar cada período (RF-03).
+- No modificar retroactivamente los registros de meses anteriores al editar un gasto recurrente (RF-17). Esto no aplica a las operaciones sobre categorías: renombrar o eliminar una categoría se refleja en todos los meses, incluidos los anteriores (RF-20, RF-21).
+- No pre-generar registros de meses futuros para gastos recurrentes: se proyectan al consultar cada período (RNF-05).
