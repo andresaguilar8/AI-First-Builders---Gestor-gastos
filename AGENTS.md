@@ -31,7 +31,7 @@ cd frontend && pnpm test
 ```
 
 ## Requerimientos
-El PRD vigente es [PRD2.md](PRD2.md). Los códigos RF/RNF/AC de este archivo refieren a él.
+El PRD vigente es [PRD.md](PRD.md). Los códigos RF/RNF/AC de este archivo refieren a él.
 
 ## Qué NO hacer
 - No guardar contraseñas en texto plano: siempre persistirlas con hash seguro (RNF-04).
