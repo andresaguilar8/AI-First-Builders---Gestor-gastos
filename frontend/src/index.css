@@ -81,9 +81,107 @@ h3 {
   line-height: 1.25;
 }
 
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+
 .app-header h1 {
   font-size: 1.25rem;
-  margin-bottom: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+button.tab {
+  min-height: 32px;
+  padding: 4px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+button.tab--active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Categorías */
+.categories-page {
+  display: grid;
+  gap: 12px;
+}
+
+.categories-page h2 {
+  font-size: 1.125rem;
+}
+
+.category-form {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.category-list .category-form {
+  padding: 0;
+  border: none;
+}
+
+.category-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-form__row input {
+  flex: 1 1 180px;
+  width: auto;
+}
+
+.category-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.category__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.category__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.category__actions {
+  display: flex;
+  gap: 16px;
 }
 
 button,

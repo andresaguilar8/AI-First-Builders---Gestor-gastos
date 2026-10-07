@@ -50,4 +50,25 @@ describe('App', () => {
     expect(await screen.findByText('Pagado el 05/10/2026')).toBeInTheDocument()
     await vi.waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
+
+  it('cambia entre gastos y categorías sin perder el mes elegido', async () => {
+    mockFetch((url) => {
+      if (url === '/api/alerts/due-today') return json({ date: '2026-10-05', expenses: [] })
+      if (url === '/api/categories') return json([{ id: 1, name: 'Vivienda' }])
+      return json([])
+    })
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Mes siguiente' }))
+
+    await user.click(screen.getByRole('button', { name: 'Categorías' }))
+
+    expect(await screen.findByText('Vivienda')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Categorías' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('heading', { name: 'noviembre de 2026' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Gastos' }))
+
+    expect(screen.getByRole('heading', { name: 'noviembre de 2026' })).toBeInTheDocument()
+  })
 })
