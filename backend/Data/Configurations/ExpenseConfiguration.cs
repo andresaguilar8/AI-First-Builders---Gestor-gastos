@@ -1,3 +1,4 @@
+using GestorGastos.Categories;
 using GestorGastos.Expenses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -22,6 +23,12 @@ public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
         builder.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
 
         builder.HasIndex(e => new { e.StartPeriod, e.EndPeriod });
+
+        // RF-21: al eliminar la categoría, sus gastos quedan sin categoría.
+        builder.HasOne<Category>()
+            .WithMany()
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(e => e.Months)
             .WithOne(m => m.Expense)

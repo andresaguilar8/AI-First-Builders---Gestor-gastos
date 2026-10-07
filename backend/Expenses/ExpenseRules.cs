@@ -84,6 +84,7 @@ public static class ExpenseRules
             Description = NormalizeDescription(request.Description),
             Amount = request.Amount!.Value,
             DueDate = request.DueDate,
+            CategoryId = request.CategoryId,
             Kind = kind,
             StartPeriod = period,
             EndPeriod = kind == ExpenseKind.OneOff ? period : null,
@@ -104,6 +105,7 @@ public static class ExpenseRules
         expense.Description = description;
         expense.Amount = amount;
         expense.DueDate = request.DueDate;
+        expense.CategoryId = request.CategoryId;
 
         if (ownMonth is not null)
         {
@@ -111,6 +113,7 @@ public static class ExpenseRules
             ownMonth.Description = description;
             ownMonth.Amount = amount;
             ownMonth.DueDate = request.DueDate;
+            ownMonth.CategoryId = request.CategoryId;
         }
     }
 

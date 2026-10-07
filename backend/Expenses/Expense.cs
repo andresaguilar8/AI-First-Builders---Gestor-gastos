@@ -27,6 +27,12 @@ public class Expense
 
     public ExpenseKind Kind { get; set; }
 
+    /// <summary>
+    /// Categoría opcional (RF-22). Se guarda solo el id: renombrar la categoría
+    /// se ve en todos los meses (RF-20) y eliminarla la deja en null (RF-21).
+    /// </summary>
+    public int? CategoryId { get; set; }
+
     /// <summary>Mes en el que se registró el gasto (RF-02).</summary>
     public Period StartPeriod { get; set; }
 

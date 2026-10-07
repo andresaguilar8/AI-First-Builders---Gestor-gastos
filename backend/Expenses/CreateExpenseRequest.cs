@@ -9,4 +9,5 @@ public sealed record CreateExpenseRequest(
     string? Description,
     decimal? Amount,
     DateOnly? DueDate,
-    ExpenseKind? Kind);
+    ExpenseKind? Kind,
+    int? CategoryId = null);

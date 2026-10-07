@@ -8,4 +8,5 @@ public sealed record UpdateExpenseRequest(
     string? Name,
     string? Description,
     decimal? Amount,
-    DateOnly? DueDate);
+    DateOnly? DueDate,
+    int? CategoryId = null);

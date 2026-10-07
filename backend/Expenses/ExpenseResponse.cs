@@ -12,9 +12,11 @@ public sealed record ExpenseResponse(
     decimal Amount,
     DateOnly? DueDate,
     DateOnly? PaidOn,
-    DueStatus Status)
+    DueStatus Status,
+    CategoryRef? Category)
 {
-    public static ExpenseResponse From(MonthlyExpense expense, DateOnly today) => new(
+    /// <param name="categoryNames">Los nombres actuales de las categorías, por id (RF-20).</param>
+    public static ExpenseResponse From(MonthlyExpense expense, DateOnly today, IReadOnlyDictionary<int, string> categoryNames) => new(
         expense.ExpenseId,
         expense.Period,
         expense.Kind,
@@ -23,5 +25,6 @@ public sealed record ExpenseResponse(
         expense.Amount,
         expense.DueDate,
         expense.PaidOn,
-        DueStatuses.Of(expense, today));
+        DueStatuses.Of(expense, today),
+        expense.CategoryId is { } id && categoryNames.TryGetValue(id, out var name) ? new CategoryRef(id, name) : null);
 }

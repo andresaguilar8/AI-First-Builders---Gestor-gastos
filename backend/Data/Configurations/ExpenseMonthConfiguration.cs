@@ -1,3 +1,4 @@
+using GestorGastos.Categories;
 using GestorGastos.Expenses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -17,5 +18,11 @@ public class ExpenseMonthConfiguration : IEntityTypeConfiguration<ExpenseMonth>
 
         // RNF-06: como máximo una instancia propia por gasto y mes.
         builder.HasIndex(m => new { m.ExpenseId, m.Period }).IsUnique();
+
+        // RF-21: también las instancias de meses anteriores pasan a "Sin categoría".
+        builder.HasOne<Category>()
+            .WithMany()
+            .HasForeignKey(m => m.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

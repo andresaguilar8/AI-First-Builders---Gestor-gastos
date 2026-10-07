@@ -58,7 +58,8 @@ public static class ExpensePayments
         return ownMonth.Name == projected.Name
             && ownMonth.Description == projected.Description
             && ownMonth.Amount == projected.Amount
-            && ownMonth.DueDate == projected.DueDate;
+            && ownMonth.DueDate == projected.DueDate
+            && ownMonth.CategoryId == projected.CategoryId;
     }
 
     private static ExpenseMonth CreateOwnMonth(Expense expense, MonthlyExpense shown)
@@ -71,6 +72,7 @@ public static class ExpensePayments
             Description = shown.Description,
             Amount = shown.Amount,
             DueDate = shown.DueDate,
+            CategoryId = shown.CategoryId,
         };
         expense.Months.Add(ownMonth);
         return ownMonth;

@@ -30,6 +30,8 @@ public class ExpenseMonth
 
     public DateOnly? DueDate { get; set; }
 
+    public int? CategoryId { get; set; }
+
     /// <summary>Fecha de pago. Null mientras el gasto esté pendiente en este mes.</summary>
     public DateOnly? PaidOn { get; set; }
 }

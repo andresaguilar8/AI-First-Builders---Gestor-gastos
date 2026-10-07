@@ -48,11 +48,11 @@ public static class ExpenseProjection
 
             return new MonthlyExpense(
                 expense.Id, period, expense.Kind,
-                ownMonth.Name, ownMonth.Description, ownMonth.Amount, ownMonth.DueDate, ownMonth.PaidOn);
+                ownMonth.Name, ownMonth.Description, ownMonth.Amount, ownMonth.DueDate, ownMonth.PaidOn, ownMonth.CategoryId);
         }
 
         return new MonthlyExpense(
             expense.Id, period, expense.Kind,
-            expense.Name, expense.Description, expense.Amount, DueDateIn(expense, period), PaidOn: null);
+            expense.Name, expense.Description, expense.Amount, DueDateIn(expense, period), PaidOn: null, expense.CategoryId);
     }
 }

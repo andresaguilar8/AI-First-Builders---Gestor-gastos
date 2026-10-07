@@ -163,4 +163,15 @@ public class ExpenseProjectionTests
 
         Assert.Throws<ArgumentException>(() => ExpenseProjection.Project(expense, ownMonth, October2026.Next()));
     }
+
+    [Fact]
+    public void Proyecta_la_categoria_del_gasto_o_la_de_su_instancia()
+    {
+        var expense = Recurring(October2026);
+        expense.CategoryId = 3;
+        var ownMonth = new ExpenseMonth { ExpenseId = expense.Id, Period = October2026, Name = "x", Amount = 1m, CategoryId = 5 };
+
+        Assert.Equal(3, ExpenseProjection.Project(expense, null, October2026.Next())!.CategoryId);
+        Assert.Equal(5, ExpenseProjection.Project(expense, ownMonth, October2026)!.CategoryId);
+    }
 }

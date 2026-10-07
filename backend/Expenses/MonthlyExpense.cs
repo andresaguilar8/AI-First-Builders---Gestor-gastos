@@ -14,4 +14,5 @@ public sealed record MonthlyExpense(
     string? Description,
     decimal Amount,
     DateOnly? DueDate,
-    DateOnly? PaidOn);
+    DateOnly? PaidOn,
+    int? CategoryId = null);
