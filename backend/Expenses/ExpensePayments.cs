@@ -7,7 +7,7 @@ public static class ExpensePayments
 {
     /// <summary>Pendiente con un vencimiento que ya pasó (RF-33).</summary>
     public static bool IsOverdue(MonthlyExpense expense, DateOnly today) =>
-        expense.PaidOn is null && expense.DueDate < today;
+        DueStatuses.Of(expense, today) == DueStatus.Overdue;
 
     /// <summary>
     /// La fecha de pago a registrar, o los errores por campo si la pedida no

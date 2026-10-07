@@ -13,11 +13,15 @@ public static class ExpenseEndpoints
     {
         var period = app.MapGroup("/api/periods/{period}/expenses");
 
-        period.MapGet("/", async (Period period, MonthlyExpenses monthlyExpenses, CancellationToken cancellationToken) =>
-            TypedResults.Ok(await monthlyExpenses.ForPeriodAsync(period, cancellationToken)));
+        period.MapGet("/", async (Period period, MonthlyExpenses monthlyExpenses, IClock clock, CancellationToken cancellationToken) =>
+        {
+            var today = clock.Today;
+            var expenses = await monthlyExpenses.ForPeriodAsync(period, cancellationToken);
+            return TypedResults.Ok(expenses.Select(e => ExpenseResponse.From(e, today)).ToList());
+        });
 
         // RF-02: el gasto se asigna al mes que el usuario está visualizando.
-        period.MapPost("/", async (Period period, CreateExpenseRequest request, AppDbContext db, CancellationToken cancellationToken) =>
+        period.MapPost("/", async (Period period, CreateExpenseRequest request, AppDbContext db, IClock clock, CancellationToken cancellationToken) =>
         {
             var errors = ExpenseRules.ValidateCreate(request, period);
             if (errors.Count > 0)
@@ -30,11 +34,11 @@ public static class ExpenseEndpoints
             await db.SaveChangesAsync(cancellationToken);
 
             var created = ExpenseProjection.Project(expense, ownMonth: null, period)!;
-            return Results.Created($"/api/periods/{period}/expenses/{expense.Id}", created);
+            return Results.Created($"/api/periods/{period}/expenses/{expense.Id}", ExpenseResponse.From(created, clock.Today));
         });
 
         // RF-09: por ahora solo gastos puntuales.
-        period.MapPut("/{expenseId:int}", async (Period period, int expenseId, UpdateExpenseRequest request, AppDbContext db, CancellationToken cancellationToken) =>
+        period.MapPut("/{expenseId:int}", async (Period period, int expenseId, UpdateExpenseRequest request, AppDbContext db, IClock clock, CancellationToken cancellationToken) =>
         {
             var expense = await FindInPeriodAsync(db, expenseId, period, cancellationToken);
             if (expense is null)
@@ -57,7 +61,7 @@ public static class ExpenseEndpoints
             ExpenseRules.ApplyUpdate(expense, ownMonth, request);
             await db.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(ExpenseProjection.Project(expense, ownMonth, period));
+            return Results.Ok(Response(expense, ownMonth, period, clock));
         });
 
         // RF-16: eliminar un gasto puntual. Sus registros del mes se borran en cascada.
@@ -104,11 +108,11 @@ public static class ExpenseEndpoints
             ownMonth = ExpensePayments.MarkAsPaid(expense, ownMonth, shown, paidOn!.Value);
             await db.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(ExpenseProjection.Project(expense, ownMonth, period));
+            return Results.Ok(Response(expense, ownMonth, period, clock));
         });
 
         // RF-31: desmarcar el pago; el gasto vuelve a quedar pendiente y sin fecha de pago.
-        period.MapDelete("/{expenseId:int}/payment", async (Period period, int expenseId, AppDbContext db, CancellationToken cancellationToken) =>
+        period.MapDelete("/{expenseId:int}/payment", async (Period period, int expenseId, AppDbContext db, IClock clock, CancellationToken cancellationToken) =>
         {
             var expense = await FindInPeriodAsync(db, expenseId, period, cancellationToken);
             if (expense is null)
@@ -124,11 +128,14 @@ public static class ExpenseEndpoints
             }
 
             await db.SaveChangesAsync(cancellationToken);
-            return Results.Ok(ExpenseProjection.Project(expense, ownMonth, period));
+            return Results.Ok(Response(expense, ownMonth, period, clock));
         });
 
         return app;
     }
+
+    private static ExpenseResponse Response(Expense expense, ExpenseMonth? ownMonth, Period period, IClock clock) =>
+        ExpenseResponse.From(ExpenseProjection.Project(expense, ownMonth, period)!, clock.Today);
 
     /// <summary>
     /// El gasto, con su instancia de <paramref name="period"/> si la tiene, o null
