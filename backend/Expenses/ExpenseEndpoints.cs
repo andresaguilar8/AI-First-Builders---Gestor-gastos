@@ -11,6 +11,14 @@ public static class ExpenseEndpoints
 
     public static IEndpointRouteBuilder MapExpenseEndpoints(this IEndpointRouteBuilder app)
     {
+        // RF-32: lo consulta la app cada vez que se abre o se recarga.
+        app.MapGet("/api/alerts/due-today", async (DueTodayExpenses dueToday, IClock clock, CancellationToken cancellationToken) =>
+        {
+            var today = clock.Today;
+            var expenses = await dueToday.ForAsync(today, cancellationToken);
+            return TypedResults.Ok(new DueTodayAlertResponse(today, expenses.Select(e => ExpenseResponse.From(e, today)).ToList()));
+        });
+
         var period = app.MapGroup("/api/periods/{period}/expenses");
 
         period.MapGet("/", async (Period period, MonthlyExpenses monthlyExpenses, IClock clock, CancellationToken cancellationToken) =>

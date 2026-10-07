@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IClock, BuenosAiresClock>();
 builder.Services.AddScoped<MonthlyExpenses>();
+builder.Services.AddScoped<DueTodayExpenses>();
 
 builder.Services.AddProblemDetails();
 builder.Services.ConfigureHttpJsonOptions(options =>
