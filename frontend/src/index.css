@@ -361,6 +361,17 @@ button.danger {
   overflow-wrap: anywhere;
 }
 
+.expense__category {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  color: var(--accent);
+}
+
+.expense__category--none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .expense__description {
   margin: 4px 0 0;
   color: var(--text-muted);

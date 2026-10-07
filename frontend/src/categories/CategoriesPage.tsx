@@ -6,11 +6,19 @@ import { CategoryNameForm } from './CategoryNameForm'
 type Result = { status: 'error' } | { status: 'ready'; categories: Category[] }
 
 /** Alta, renombrado y eliminación de categorías (RF-18 a RF-21). */
-export function CategoriesPage() {
+type Props = {
+  /** Se llama cuando se crea, renombra o elimina una categoría. */
+  onChanged?: () => void
+}
+
+export function CategoriesPage({ onChanged }: Props = {}) {
   const [reloadKey, setReloadKey] = useState(0)
   const [result, setResult] = useState<(Result & { key: number }) | null>(null)
   const state = result?.key === reloadKey ? result : { status: 'loading' as const }
-  const reload = () => setReloadKey((key) => key + 1)
+  const reload = () => {
+    onChanged?.()
+    setReloadKey((key) => key + 1)
+  }
 
   useEffect(() => {
     let ignore = false

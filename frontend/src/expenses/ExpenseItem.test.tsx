@@ -26,6 +26,7 @@ const expense = (overrides: Partial<MonthlyExpense> = {}): MonthlyExpense => ({
   dueDate: '2026-10-10',
   paidOn: null,
   status: 'upToDate',
+  category: null,
   ...overrides,
 })
 
@@ -35,7 +36,7 @@ function renderItem(item: MonthlyExpense) {
   const onUpdated = vi.fn()
   render(
     <ul>
-      <ExpenseItem period="2026-10" expense={item} onChanged={vi.fn()} onUpdated={onUpdated} />
+      <ExpenseItem period="2026-10" expense={item} categories={[]} onChanged={vi.fn()} onUpdated={onUpdated} />
     </ul>,
   )
   return { onUpdated, user: userEvent.setup() }

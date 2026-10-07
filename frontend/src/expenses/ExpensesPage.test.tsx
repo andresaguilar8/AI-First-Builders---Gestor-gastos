@@ -29,11 +29,19 @@ const expense = (name: string, period: string): MonthlyExpense => ({
   dueDate: null,
   paidOn: null,
   status: 'upToDate',
+  category: null,
 })
 
-/** Simula la API con los gastos de cada mes: alta, edición y eliminación. */
-function mockApi(byPeriod: Record<string, MonthlyExpense[]> = {}) {
+/** Los GET de gastos, sin los de categorías. */
+const expenseRequests = (fetchMock: ReturnType<typeof mockFetch>) =>
+  requestedUrls(fetchMock).filter((url) => url.includes('/expenses'))
+
+/** Simula la API con los gastos de cada mes: alta, edición, eliminación y pagos. */
+function mockApi(byPeriod: Record<string, MonthlyExpense[]> = {}, categories = [{ id: 1, name: 'Hogar' }]) {
   return mockFetch((url, init) => {
+    if (url === '/api/categories') {
+      return json(categories)
+    }
     const [, period = '', id, payment] = /\/periods\/(\d{4}-\d{2})\/expenses(?:\/(\d+))?(\/payment)?/.exec(url) ?? []
     const expenses = byPeriod[period] ?? []
     if (payment) {
@@ -72,7 +80,7 @@ describe('ExpensesPage', () => {
 
     expect(screen.getByRole('heading', { name: 'octubre de 2026' })).toBeInTheDocument()
     expect(await screen.findByText('Alquiler')).toBeInTheDocument()
-    expect(requestedUrls(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
+    expect(expenseRequests(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
   })
 
   it('usa el mes de Buenos Aires aunque en UTC ya sea el mes siguiente', async () => {
@@ -229,7 +237,7 @@ describe('ExpensesPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Marcar Luz como pagado' }))
 
     expect(await screen.findByText('Pagado el 05/10/2026')).toBeInTheDocument()
-    expect(requestedUrls(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
+    expect(expenseRequests(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
     expect(requestedUrls(fetchMock, 'PUT')).toEqual(['/api/periods/2026-10/expenses/3/payment'])
   })
 
@@ -243,6 +251,49 @@ describe('ExpensesPage', () => {
 
     expect(await screen.findByRole('button', { name: 'Marcar Luz como pagado' })).toBeInTheDocument()
     expect(screen.queryByText(/Pagado el/)).not.toBeInTheDocument()
-    expect(requestedUrls(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
+    expect(expenseRequests(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
+  })
+
+  it('muestra la categoría de cada gasto o "Sin categoría"', async () => {
+    mockApi({
+      '2026-10': [
+        { ...expense('Alquiler', '2026-10'), category: { id: 1, name: 'Hogar' } },
+        expense('Regalo', '2026-10'),
+      ],
+    })
+
+    render(<ExpensesPage />)
+
+    const [rent, gift] = await screen.findAllByRole('listitem')
+    expect(within(rent).getByText('Hogar')).toBeInTheDocument()
+    expect(within(gift).getByText('Sin categoría')).toBeInTheDocument()
+  })
+
+  it('ofrece las categorías existentes en el formulario', async () => {
+    mockApi({}, [
+      { id: 1, name: 'Hogar' },
+      { id: 2, name: 'Varios' },
+    ])
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(screen.getByRole('button', { name: '+ Agregar gasto' }))
+
+    const select = screen.getByLabelText(/Categoría/)
+    await waitFor(() =>
+      expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['Sin categoría', 'Hogar', 'Varios']),
+    )
+  })
+
+  it('vuelve a cargar gastos y categorías cuando cambian las categorías', async () => {
+    // AC-28 / AC-30: un renombre o una eliminación se ven al volver a los gastos.
+    const fetchMock = mockApi()
+    const { rerender } = render(<ExpensesPage categoriesKey={0} />)
+    await screen.findByText('No hay gastos en este mes.')
+
+    rerender(<ExpensesPage categoriesKey={1} />)
+
+    await waitFor(() => expect(expenseRequests(fetchMock)).toHaveLength(2))
+    expect(requestedUrls(fetchMock).filter((url) => url === '/api/categories')).toHaveLength(2)
   })
 })

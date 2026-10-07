@@ -25,6 +25,7 @@ const dueToday = (name: string, period = '2026-10'): MonthlyExpense => ({
   dueDate: '2026-10-05',
   paidOn: null,
   status: 'dueToday',
+  category: null,
 })
 
 function mockAlert(...expenses: MonthlyExpense[]) {

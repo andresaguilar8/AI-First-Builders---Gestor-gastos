@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { categoriesApi, type Category } from '../api/categories'
 import { expensesApi, type MonthlyExpense } from '../api/expenses'
 import { currentPeriod, type Period } from '../lib/period'
 import { ExpenseForm } from './ExpenseForm'
@@ -10,9 +11,11 @@ type Result = { status: 'error' } | { status: 'ready'; expenses: MonthlyExpense[
 type Props = {
   /** Se llama cuando se crea, edita, elimina o paga un gasto. */
   onExpensesChanged?: () => void
+  /** Cambia cuando cambian las categorías: hay que volver a cargarlas, y los gastos con sus nombres. */
+  categoriesKey?: number
 }
 
-export function ExpensesPage({ onExpensesChanged }: Props = {}) {
+export function ExpensesPage({ onExpensesChanged, categoriesKey = 0 }: Props = {}) {
   // RF-34: se arranca en el mes actual.
   const [period, setPeriod] = useState<Period>(() => currentPeriod())
   const [reloadKey, setReloadKey] = useState(0)
@@ -20,7 +23,7 @@ export function ExpensesPage({ onExpensesChanged }: Props = {}) {
 
   // Cada resultado queda asociado a la carga que lo pidió. Mientras no llegue
   // el de la carga actual, la lista está cargando.
-  const loadKey = `${period}#${reloadKey}`
+  const loadKey = `${period}#${reloadKey}#${categoriesKey}`
   const [result, setResult] = useState<(Result & { key: string }) | null>(null)
   const state = result?.key === loadKey ? result : { status: 'loading' as const }
 
@@ -34,6 +37,19 @@ export function ExpensesPage({ onExpensesChanged }: Props = {}) {
       ignore = true
     }
   }, [period, loadKey])
+
+  // Si no se pueden cargar las categorías, el formulario solo ofrece "Sin categoría".
+  const [categories, setCategories] = useState<Category[]>([])
+  useEffect(() => {
+    let ignore = false
+    categoriesApi
+      .list()
+      .then((list) => !ignore && setCategories(list))
+      .catch(() => !ignore && setCategories([]))
+    return () => {
+      ignore = true
+    }
+  }, [categoriesKey])
 
   // Pagar o desmarcar no vuelve a pedir la lista: se reemplaza el gasto con
   // lo que devolvió la API (AC-35: sin recargar la página).
@@ -64,6 +80,7 @@ export function ExpensesPage({ onExpensesChanged }: Props = {}) {
         <ExpenseForm
           key={period}
           period={period}
+          categories={categories}
           onCancel={() => setAdding(false)}
           onSaved={() => {
             setAdding(false)
@@ -89,6 +106,7 @@ export function ExpensesPage({ onExpensesChanged }: Props = {}) {
         <ExpenseList
           period={period}
           expenses={state.expenses}
+          categories={categories}
           onChanged={reload}
           onUpdated={replaceExpense}
         />

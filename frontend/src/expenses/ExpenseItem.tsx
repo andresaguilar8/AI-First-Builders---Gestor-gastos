@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Category } from '../api/categories'
 import { fieldErrors } from '../api/client'
 import { expensesApi, type MonthlyExpense } from '../api/expenses'
 import { formatAmount } from '../lib/money'
@@ -10,6 +11,7 @@ import { PaymentDateForm } from './PaymentDateForm'
 type Props = {
   period: Period
   expense: MonthlyExpense
+  categories: Category[]
   /** Algo cambió y hay que volver a pedir la lista (edición, eliminación). */
   onChanged: () => void
   /** El gasto cambió y la API ya devolvió cómo queda (pagos). */
@@ -23,7 +25,7 @@ type Mode = 'view' | 'edit' | 'confirmDelete' | 'payOverdue'
  * (RF-27 a RF-31). Los puntuales, además, se pueden editar (RF-09) y eliminar
  * (RF-16); los recurrentes todavía no.
  */
-export function ExpenseItem({ period, expense, onChanged, onUpdated }: Props) {
+export function ExpenseItem({ period, expense, categories, onChanged, onUpdated }: Props) {
   const [mode, setMode] = useState<Mode>('view')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,6 +79,7 @@ export function ExpenseItem({ period, expense, onChanged, onUpdated }: Props) {
       <li className="expense expense--editing">
         <ExpenseForm
           period={period}
+          categories={categories}
           expense={expense}
           onCancel={() => changeMode('view')}
           onSaved={() => {
@@ -94,6 +97,9 @@ export function ExpenseItem({ period, expense, onChanged, onUpdated }: Props) {
         <span className="expense__name">{expense.name}</span>
         <span className={`badge badge--${expense.kind}`}>{expense.kind === 'recurring' ? 'Recurrente' : 'Puntual'}</span>
       </div>
+      <p className={`expense__category${expense.category ? '' : ' expense__category--none'}`}>
+        {expense.category?.name ?? 'Sin categoría'}
+      </p>
       {expense.description && <p className="expense__description">{expense.description}</p>}
       <div className="expense__meta">
         <span className="expense__amount">{formatAmount(expense.amount)}</span>

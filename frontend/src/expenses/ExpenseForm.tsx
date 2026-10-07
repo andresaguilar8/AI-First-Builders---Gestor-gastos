@@ -1,4 +1,5 @@
 import { useId, useState, type FormEvent } from 'react'
+import type { Category } from '../api/categories'
 import { fieldErrors } from '../api/client'
 import { expensesApi, type ExpenseKind, type MonthlyExpense } from '../api/expenses'
 import { formatAmountInput, parseAmount } from '../lib/money'
@@ -6,22 +7,25 @@ import { firstDay, periodLabel, type Period } from '../lib/period'
 
 type Props = {
   period: Period
+  /** Las categorías que se pueden asociar (RF-22). */
+  categories: Category[]
   /** El gasto a editar. Sin él, el formulario da de alta uno nuevo. */
   expense?: MonthlyExpense
   onSaved: () => void
   onCancel: () => void
 }
 
-type Errors = Partial<Record<'name' | 'amount' | 'description' | 'dueDate' | 'kind' | 'form', string>>
+type Errors = Partial<Record<'name' | 'amount' | 'description' | 'dueDate' | 'categoryId' | 'kind' | 'form', string>>
 
 /** Alta (RF-01 a RF-05) o edición (RF-09) de un gasto del mes visualizado. */
-export function ExpenseForm({ period, expense, onSaved, onCancel }: Props) {
+export function ExpenseForm({ period, categories, expense, onSaved, onCancel }: Props) {
   const id = useId()
   const editing = expense !== undefined
   const [name, setName] = useState(expense?.name ?? '')
   const [amount, setAmount] = useState(expense ? formatAmountInput(expense.amount) : '')
   const [description, setDescription] = useState(expense?.description ?? '')
   const [dueDate, setDueDate] = useState(expense?.dueDate ?? '')
+  const [categoryId, setCategoryId] = useState(expense?.category ? String(expense.category.id) : '')
   const [kind, setKind] = useState<ExpenseKind>('oneOff')
   const [errors, setErrors] = useState<Errors>({})
   const [saving, setSaving] = useState(false)
@@ -51,6 +55,7 @@ export function ExpenseForm({ period, expense, onSaved, onCancel }: Props) {
       description: description.trim() || null,
       amount: parsedAmount.value,
       dueDate: dueDate || null,
+      categoryId: categoryId === '' ? null : Number(categoryId),
     }
 
     setSaving(true)
@@ -139,6 +144,27 @@ export function ExpenseForm({ period, expense, onSaved, onCancel }: Props) {
           aria-describedby={describedBy('dueDate')}
         />
         {fieldError('dueDate')}
+      </div>
+
+      <div className="field">
+        <label htmlFor={`${id}-categoryId`}>
+          Categoría <span className="field__optional">(opcional)</span>
+        </label>
+        <select
+          id={`${id}-categoryId`}
+          value={categoryId}
+          onChange={(event) => setCategoryId(event.target.value)}
+          aria-invalid={Boolean(errors.categoryId)}
+          aria-describedby={describedBy('categoryId')}
+        >
+          <option value="">Sin categoría</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        {fieldError('categoryId')}
       </div>
 
       <div className="field">

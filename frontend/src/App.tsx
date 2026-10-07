@@ -8,6 +8,7 @@ type Section = 'expenses' | 'categories'
 function App() {
   const [alertKey, setAlertKey] = useState(0)
   const [section, setSection] = useState<Section>('expenses')
+  const [categoriesKey, setCategoriesKey] = useState(0)
 
   const tab = (value: Section, label: string) => (
     <button
@@ -32,9 +33,9 @@ function App() {
       <DueTodayAlert refreshKey={alertKey} />
       {/* Los gastos quedan montados para no perder el mes elegido al cambiar de sección. */}
       <div hidden={section !== 'expenses'}>
-        <ExpensesPage onExpensesChanged={() => setAlertKey((key) => key + 1)} />
+        <ExpensesPage onExpensesChanged={() => setAlertKey((key) => key + 1)} categoriesKey={categoriesKey} />
       </div>
-      {section === 'categories' && <CategoriesPage />}
+      {section === 'categories' && <CategoriesPage onChanged={() => setCategoriesKey((key) => key + 1)} />}
     </main>
   )
 }

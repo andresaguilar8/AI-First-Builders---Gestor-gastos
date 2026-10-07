@@ -17,6 +17,8 @@ export type MonthlyExpense = {
   dueDate: string | null
   paidOn: string | null
   status: DueStatus
+  /** Null es "Sin categoría". */
+  category: { id: number; name: string } | null
 }
 
 export type NewExpense = {
@@ -24,6 +26,7 @@ export type NewExpense = {
   description: string | null
   amount: number
   dueDate: string | null
+  categoryId: number | null
   kind: ExpenseKind
 }
 

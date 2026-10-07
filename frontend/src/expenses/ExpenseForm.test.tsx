@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { MonthlyExpense } from '../api/expenses'
@@ -11,9 +11,14 @@ afterEach(() => {
 
 function renderForm(period = '2026-10', expense?: MonthlyExpense) {
   const onCreated = vi.fn()
-  render(<ExpenseForm period={period} expense={expense} onSaved={onCreated} onCancel={vi.fn()} />)
+  render(<ExpenseForm period={period} categories={categories} expense={expense} onSaved={onCreated} onCancel={vi.fn()} />)
   return { onCreated, user: userEvent.setup() }
 }
+
+const categories = [
+  { id: 1, name: 'Hogar' },
+  { id: 2, name: 'Varios' },
+]
 
 const gift: MonthlyExpense = {
   expenseId: 7,
@@ -25,6 +30,7 @@ const gift: MonthlyExpense = {
   dueDate: '2026-10-20',
   paidOn: null,
   status: 'upToDate',
+  category: null,
 }
 
 describe('ExpenseForm', () => {
@@ -47,6 +53,7 @@ describe('ExpenseForm', () => {
       description: 'Cumpleaños',
       amount: 1234.56,
       dueDate: '2026-11-05',
+      categoryId: null,
       kind: 'recurring',
     })
   })
@@ -64,6 +71,7 @@ describe('ExpenseForm', () => {
       description: null,
       amount: 15000,
       dueDate: null,
+      categoryId: null,
       kind: 'oneOff',
     })
   })
@@ -167,6 +175,7 @@ describe('ExpenseForm', () => {
         description: 'Para Ana',
         amount: 18500.5,
         dueDate: '2026-11-02',
+        categoryId: null,
       })
     })
 
@@ -180,6 +189,41 @@ describe('ExpenseForm', () => {
 
       expect(screen.getByText('El monto admite hasta 2 decimales.')).toBeInTheDocument()
       expect(fetchMock).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('categoría', () => {
+    it('ofrece "Sin categoría" y las categorías existentes', () => {
+      renderForm()
+
+      const select = screen.getByLabelText(/Categoría/)
+      expect(select).toHaveValue('')
+      expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['Sin categoría', 'Hogar', 'Varios'])
+    })
+
+    it('envía la categoría elegida en el alta', async () => {
+      // AC-02
+      const fetchMock = mockFetch(() => json({}, 201))
+      const { user } = renderForm()
+
+      await user.type(screen.getByLabelText('Nombre'), 'Regalo')
+      await user.type(screen.getByLabelText('Monto ($)'), '15.000')
+      await user.selectOptions(screen.getByLabelText(/Categoría/), 'Varios')
+      await user.click(screen.getByRole('button', { name: 'Guardar' }))
+
+      expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ categoryId: 2 })
+    })
+
+    it('arranca con la categoría del gasto y permite cambiarla al editar', async () => {
+      // AC-31
+      const fetchMock = mockFetch(() => json({}))
+      const { user } = renderForm('2026-10', { ...gift, category: { id: 1, name: 'Hogar' } })
+
+      expect(screen.getByLabelText(/Categoría/)).toHaveValue('1')
+      await user.selectOptions(screen.getByLabelText(/Categoría/), 'Sin categoría')
+      await user.click(screen.getByRole('button', { name: 'Guardar' }))
+
+      expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ categoryId: null })
     })
   })
 })

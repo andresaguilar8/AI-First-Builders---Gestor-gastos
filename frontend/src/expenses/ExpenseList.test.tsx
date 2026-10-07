@@ -13,6 +13,7 @@ const expense = (overrides: Partial<MonthlyExpense>): MonthlyExpense => ({
   dueDate: null,
   paidOn: null,
   status: 'upToDate',
+  category: null,
   ...overrides,
 })
 
@@ -23,6 +24,7 @@ describe('ExpenseList', () => {
         period="2026-10"
         onChanged={vi.fn()}
         onUpdated={vi.fn()}
+        categories={[]}
         expenses={[
           expense({ expenseId: 1, name: 'Alquiler', kind: 'recurring', amount: 300000, dueDate: '2026-11-05' }),
           expense({ expenseId: 2, name: 'Regalo', description: 'Cumpleaños', amount: 1234.56 }),
@@ -43,7 +45,7 @@ describe('ExpenseList', () => {
   })
 
   it('avisa cuando el mes no tiene gastos', () => {
-    render(<ExpenseList period="2026-10" expenses={[]} onChanged={vi.fn()} onUpdated={vi.fn()} />)
+    render(<ExpenseList period="2026-10" expenses={[]} categories={[]} onChanged={vi.fn()} onUpdated={vi.fn()} />)
 
     expect(screen.getByText('No hay gastos en este mes.')).toBeInTheDocument()
   })
@@ -54,6 +56,7 @@ describe('ExpenseList', () => {
         period="2026-10"
         onChanged={vi.fn()}
         onUpdated={vi.fn()}
+        categories={[]}
         expenses={[expense({ expenseId: 1, name: 'Alquiler', kind: 'recurring' }), expense({ expenseId: 2, name: 'Regalo' })]}
       />,
     )
