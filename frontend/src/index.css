@@ -11,6 +11,16 @@
   --badge-oneoff-text: #3d4450;
   --badge-recurring-bg: #e6efff;
   --badge-recurring-text: #1d4ed8;
+  --status-paid: #157f3c;
+  --status-paid-bg: #e7f6ec;
+  --status-uptodate: #3d4450;
+  --status-uptodate-bg: #eef1f5;
+  --status-duesoon: #8a5300;
+  --status-duesoon-bg: #fff4dc;
+  --status-duetoday: #b54708;
+  --status-duetoday-bg: #ffead5;
+  --status-overdue: #b42318;
+  --status-overdue-bg: #fde8e7;
   --radius: 10px;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -33,6 +43,16 @@
     --badge-oneoff-text: #c9ced6;
     --badge-recurring-bg: #1f2c4a;
     --badge-recurring-text: #9dbcff;
+    --status-paid: #6fd394;
+    --status-paid-bg: #173322;
+    --status-uptodate: #c9ced6;
+    --status-uptodate-bg: #2a2e35;
+    --status-duesoon: #f5c56b;
+    --status-duesoon-bg: #3a2d12;
+    --status-duetoday: #ffab6e;
+    --status-duetoday-bg: #42260f;
+    --status-overdue: #ff8a80;
+    --status-overdue-bg: #451c1a;
   }
 }
 
@@ -257,8 +277,74 @@ button.danger {
 
 .expense__actions {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+button.small {
+  min-height: 36px;
+  padding: 4px 12px;
+  font-size: 0.875rem;
+}
+
+.expense__status {
   margin-top: 8px;
+}
+
+/* Estados de vencimiento (RF-33): color de texto, fondo y borde izquierdo de la tarjeta. */
+.status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status--paid {
+  color: var(--status-paid);
+  background: var(--status-paid-bg);
+}
+
+.status--upToDate {
+  color: var(--status-uptodate);
+  background: var(--status-uptodate-bg);
+}
+
+.status--dueSoon {
+  color: var(--status-duesoon);
+  background: var(--status-duesoon-bg);
+}
+
+.status--dueToday {
+  color: var(--status-duetoday);
+  background: var(--status-duetoday-bg);
+}
+
+.status--overdue {
+  color: var(--status-overdue);
+  background: var(--status-overdue-bg);
+}
+
+.expense--paid {
+  border-left: 4px solid var(--status-paid);
+}
+
+.expense--dueSoon {
+  border-left: 4px solid var(--status-duesoon);
+}
+
+.expense--dueToday {
+  border-left: 4px solid var(--status-duetoday);
+}
+
+.expense--overdue {
+  border-left: 4px solid var(--status-overdue);
+}
+
+.expense--paid .expense__amount {
+  color: var(--text-muted);
 }
 
 .expense__confirm {

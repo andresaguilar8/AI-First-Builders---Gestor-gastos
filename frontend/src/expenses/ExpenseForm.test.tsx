@@ -24,6 +24,7 @@ const gift: MonthlyExpense = {
   amount: 15000,
   dueDate: '2026-10-20',
   paidOn: null,
+  status: 'upToDate',
 }
 
 describe('ExpenseForm', () => {

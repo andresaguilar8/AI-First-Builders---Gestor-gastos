@@ -3,6 +3,9 @@ import { api, ApiError } from './client'
 
 export type ExpenseKind = 'oneOff' | 'recurring'
 
+/** Situación respecto del vencimiento, calculada por el servidor (RF-33). */
+export type DueStatus = 'paid' | 'upToDate' | 'dueSoon' | 'dueToday' | 'overdue'
+
 /** Un gasto tal como se ve en un mes (proyectado o con valores propios). */
 export type MonthlyExpense = {
   expenseId: number
@@ -13,6 +16,7 @@ export type MonthlyExpense = {
   amount: number
   dueDate: string | null
   paidOn: string | null
+  status: DueStatus
 }
 
 export type NewExpense = {
@@ -33,6 +37,11 @@ export const expensesApi = {
   update: (period: Period, expenseId: number, changes: ExpenseChanges) =>
     api.put<MonthlyExpense>(`/periods/${period}/expenses/${expenseId}`, changes),
   remove: (period: Period, expenseId: number) => api.delete<void>(`/periods/${period}/expenses/${expenseId}`),
+  /** Marca como pagado. Sin fecha, el servidor registra la de hoy (RF-28). */
+  pay: (period: Period, expenseId: number, paidOn: string | null = null) =>
+    api.put<MonthlyExpense>(`/periods/${period}/expenses/${expenseId}/payment`, { paidOn }),
+  unpay: (period: Period, expenseId: number) =>
+    api.delete<MonthlyExpense>(`/periods/${period}/expenses/${expenseId}/payment`),
 }
 
 /**

@@ -30,6 +30,16 @@ export function ExpensesPage() {
     }
   }, [period, loadKey])
 
+  // Pagar o desmarcar no vuelve a pedir la lista: se reemplaza el gasto con
+  // lo que devolvió la API (AC-35: sin recargar la página).
+  function replaceExpense(updated: MonthlyExpense) {
+    setResult((current) =>
+      current?.status === 'ready'
+        ? { ...current, expenses: current.expenses.map((e) => (e.expenseId === updated.expenseId ? updated : e)) }
+        : current,
+    )
+  }
+
   function changePeriod(next: Period) {
     setPeriod(next)
     setAdding(false)
@@ -65,7 +75,12 @@ export function ExpensesPage() {
         </div>
       )}
       {state.status === 'ready' && (
-        <ExpenseList period={period} expenses={state.expenses} onChanged={() => setReloadKey((key) => key + 1)} />
+        <ExpenseList
+          period={period}
+          expenses={state.expenses}
+          onChanged={() => setReloadKey((key) => key + 1)}
+          onUpdated={replaceExpense}
+        />
       )}
     </section>
   )

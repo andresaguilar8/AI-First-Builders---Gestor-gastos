@@ -28,13 +28,21 @@ const expense = (name: string, period: string): MonthlyExpense => ({
   amount: 1000,
   dueDate: null,
   paidOn: null,
+  status: 'upToDate',
 })
 
 /** Simula la API con los gastos de cada mes: alta, edición y eliminación. */
 function mockApi(byPeriod: Record<string, MonthlyExpense[]> = {}) {
   return mockFetch((url, init) => {
-    const [, period = '', id] = /\/periods\/(\d{4}-\d{2})\/expenses(?:\/(\d+))?/.exec(url) ?? []
+    const [, period = '', id, payment] = /\/periods\/(\d{4}-\d{2})\/expenses(?:\/(\d+))?(\/payment)?/.exec(url) ?? []
     const expenses = byPeriod[period] ?? []
+    if (payment) {
+      const paidOn = init?.method === 'PUT' ? (JSON.parse(String(init.body)).paidOn ?? '2026-10-05') : null
+      byPeriod[period] = expenses.map((e) =>
+        e.expenseId === Number(id) ? { ...e, paidOn, status: paidOn ? 'paid' : 'upToDate' } : e,
+      )
+      return json(byPeriod[period].find((e) => e.expenseId === Number(id)))
+    }
     switch (init?.method ?? 'GET') {
       case 'POST': {
         const created = expense(JSON.parse(String(init?.body)).name, period)
@@ -210,5 +218,31 @@ describe('ExpensesPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar el gasto.')
     expect(screen.getByText('Regalo')).toBeInTheDocument()
+  })
+
+  it('marca un gasto como pagado sin volver a pedir la lista', async () => {
+    // AC-35
+    const fetchMock = mockApi({ '2026-10': [expense('Luz', '2026-10')] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Marcar Luz como pagado' }))
+
+    expect(await screen.findByText('Pagado el 05/10/2026')).toBeInTheDocument()
+    expect(requestedUrls(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
+    expect(requestedUrls(fetchMock, 'PUT')).toEqual(['/api/periods/2026-10/expenses/3/payment'])
+  })
+
+  it('desmarca un pago sin volver a pedir la lista', async () => {
+    // AC-39
+    const fetchMock = mockApi({ '2026-10': [{ ...expense('Luz', '2026-10'), paidOn: '2026-10-05', status: 'paid' }] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Desmarcar pago de Luz' }))
+
+    expect(await screen.findByRole('button', { name: 'Marcar Luz como pagado' })).toBeInTheDocument()
+    expect(screen.queryByText(/Pagado el/)).not.toBeInTheDocument()
+    expect(requestedUrls(fetchMock)).toEqual(['/api/periods/2026-10/expenses'])
   })
 })
