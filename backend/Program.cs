@@ -1,6 +1,7 @@
 using GestorGastos.Categories;
 using GestorGastos.Data;
 using GestorGastos.Expenses;
+using GestorGastos.Summary;
 using GestorGastos.Time;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -42,6 +43,7 @@ app.MapGet("/api/health", async (AppDbContext db, IClock clock) =>
 
 app.MapExpenseEndpoints();
 app.MapCategoryEndpoints();
+app.MapSummaryEndpoints();
 
 app.Run();
 
