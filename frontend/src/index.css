@@ -1,7 +1,39 @@
 :root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c1f24;
+  --text-muted: #5d6470;
+  --border: #d9dde3;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --danger: #b42318;
+  --badge-oneoff-bg: #eef1f5;
+  --badge-oneoff-text: #3d4450;
+  --badge-recurring-bg: #e6efff;
+  --badge-recurring-text: #1d4ed8;
+  --radius: 10px;
+
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   color-scheme: light dark;
+  color: var(--text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --surface: #1d2025;
+    --text: #e8eaee;
+    --text-muted: #a3a9b4;
+    --border: #343941;
+    --accent: #5b8cff;
+    --accent-text: #0b1020;
+    --danger: #ff8a80;
+    --badge-oneoff-bg: #2a2e35;
+    --badge-oneoff-text: #c9ced6;
+    --badge-recurring-bg: #1f2c4a;
+    --badge-recurring-text: #9dbcff;
+  }
 }
 
 *,
@@ -13,10 +45,270 @@
 body {
   margin: 0;
   min-width: 320px;
+  background: var(--bg);
 }
 
 main {
-  max-width: 960px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 16px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+button {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.link-button {
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.icon-button {
+  width: 40px;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Navegación de meses */
+.month-nav {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.month-nav__title {
+  font-size: 1.125rem;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.month-nav__jump {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav__jump select {
+  flex: 1 1 140px;
+}
+
+.month-nav__jump input {
+  flex: 0 0 88px;
+}
+
+/* Lista de gastos */
+.expenses-page {
+  display: grid;
+  gap: 12px;
+}
+
+.add-button {
+  justify-self: start;
+}
+
+.empty {
+  margin: 8px 0;
+  color: var(--text-muted);
+}
+
+.expense-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expense {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.expense__main,
+.expense__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.expense__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.expense__description {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.expense__meta {
+  margin-top: 8px;
+}
+
+.expense__amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense__due {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.badge--oneOff {
+  background: var(--badge-oneoff-bg);
+  color: var(--badge-oneoff-text);
+}
+
+.badge--recurring {
+  background: var(--badge-recurring-bg);
+  color: var(--badge-recurring-text);
+}
+
+/* Formulario */
+.expense-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.expense-form h3 {
+  font-size: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.field label,
+.field legend {
+  font-weight: 500;
+  padding: 0;
+}
+
+.field__optional {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.field__error,
+.form-error {
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+.form-error {
+  margin: 0;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+}
+
+.radio-group input {
+  width: auto;
+  min-height: auto;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
