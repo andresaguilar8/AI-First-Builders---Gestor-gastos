@@ -120,6 +120,16 @@ button.secondary {
   text-decoration: underline;
 }
 
+.link-button--danger {
+  color: var(--danger);
+}
+
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--accent-text);
+}
+
 .icon-button {
   width: 40px;
   padding: 0;
@@ -243,6 +253,26 @@ button.secondary {
 .badge--recurring {
   background: var(--badge-recurring-bg);
   color: var(--badge-recurring-text);
+}
+
+.expense__actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.expense__confirm {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.expense--editing {
+  padding: 0;
+  border: none;
+  background: none;
 }
 
 /* Formulario */

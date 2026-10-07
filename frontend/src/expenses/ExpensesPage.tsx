@@ -44,7 +44,7 @@ export function ExpensesPage() {
           key={period}
           period={period}
           onCancel={() => setAdding(false)}
-          onCreated={() => {
+          onSaved={() => {
             setAdding(false)
             setReloadKey((key) => key + 1)
           }}
@@ -64,7 +64,9 @@ export function ExpensesPage() {
           </button>
         </div>
       )}
-      {state.status === 'ready' && <ExpenseList expenses={state.expenses} />}
+      {state.status === 'ready' && (
+        <ExpenseList period={period} expenses={state.expenses} onChanged={() => setReloadKey((key) => key + 1)} />
+      )}
     </section>
   )
 }

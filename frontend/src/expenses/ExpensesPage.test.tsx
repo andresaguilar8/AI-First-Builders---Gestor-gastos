@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MonthlyExpense } from '../api/expenses'
@@ -30,16 +30,28 @@ const expense = (name: string, period: string): MonthlyExpense => ({
   paidOn: null,
 })
 
-/** Simula la API con los gastos de cada mes; los POST agregan al mes de la URL. */
+/** Simula la API con los gastos de cada mes: alta, edición y eliminación. */
 function mockApi(byPeriod: Record<string, MonthlyExpense[]> = {}) {
   return mockFetch((url, init) => {
-    const period = /\/periods\/(\d{4}-\d{2})\/expenses/.exec(url)?.[1] ?? ''
-    if (init?.method === 'POST') {
-      const created = { ...expense(JSON.parse(String(init.body)).name, period) }
-      byPeriod[period] = [...(byPeriod[period] ?? []), created]
-      return json(created, 201)
+    const [, period = '', id] = /\/periods\/(\d{4}-\d{2})\/expenses(?:\/(\d+))?/.exec(url) ?? []
+    const expenses = byPeriod[period] ?? []
+    switch (init?.method ?? 'GET') {
+      case 'POST': {
+        const created = expense(JSON.parse(String(init?.body)).name, period)
+        byPeriod[period] = [...expenses, created]
+        return json(created, 201)
+      }
+      case 'PUT': {
+        const changes = JSON.parse(String(init?.body))
+        byPeriod[period] = expenses.map((e) => (e.expenseId === Number(id) ? { ...e, ...changes } : e))
+        return json(byPeriod[period].find((e) => e.expenseId === Number(id)))
+      }
+      case 'DELETE':
+        byPeriod[period] = expenses.filter((e) => e.expenseId !== Number(id))
+        return new Response(null, { status: 204 })
+      default:
+        return json(expenses)
     }
-    return json(byPeriod[period] ?? [])
   })
 }
 
@@ -142,5 +154,61 @@ describe('ExpensesPage', () => {
     await user.click(screen.getByRole('button', { name: 'Reintentar' }))
 
     expect(await screen.findByText('Luz')).toBeInTheDocument()
+  })
+
+  it('edita un gasto puntual y muestra los nuevos valores', async () => {
+    // AC-14
+    mockApi({ '2026-10': [expense('Regalo', '2026-10')] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Editar Regalo' }))
+    const form = screen.getByRole('form', { name: 'Editar gasto' })
+    await user.clear(within(form).getByLabelText('Nombre'))
+    await user.type(within(form).getByLabelText('Nombre'), 'Regalo de cumpleaños')
+    await user.click(within(form).getByRole('button', { name: 'Guardar' }))
+
+    expect(await screen.findByText('Regalo de cumpleaños')).toBeInTheDocument()
+    expect(screen.queryByRole('form', { name: 'Editar gasto' })).not.toBeInTheDocument()
+  })
+
+  it('elimina un gasto puntual después de confirmar', async () => {
+    // AC-23
+    const fetchMock = mockApi({ '2026-10': [expense('Regalo', '2026-10'), expense('Luz', '2026-10')] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Eliminar Regalo' }))
+    expect(requestedUrls(fetchMock, 'DELETE')).toEqual([])
+    await user.click(screen.getByRole('button', { name: 'Sí, eliminar' }))
+
+    await waitFor(() => expect(screen.queryByText('Regalo')).not.toBeInTheDocument())
+    expect(screen.getByText('Luz')).toBeInTheDocument()
+    expect(requestedUrls(fetchMock, 'DELETE')).toEqual(['/api/periods/2026-10/expenses/6'])
+  })
+
+  it('no elimina si se cancela la confirmación', async () => {
+    const fetchMock = mockApi({ '2026-10': [expense('Regalo', '2026-10')] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Eliminar Regalo' }))
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.getByText('Regalo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Eliminar Regalo' })).toBeInTheDocument()
+    expect(requestedUrls(fetchMock, 'DELETE')).toEqual([])
+  })
+
+  it('avisa si no se pudo eliminar', async () => {
+    mockFetch((_, init) => (init?.method === 'DELETE' ? json({}, 500) : json([expense('Regalo', '2026-10')])))
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Eliminar Regalo' }))
+    await user.click(screen.getByRole('button', { name: 'Sí, eliminar' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar el gasto.')
+    expect(screen.getByText('Regalo')).toBeInTheDocument()
   })
 })

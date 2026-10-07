@@ -41,3 +41,10 @@ const currency = new Intl.NumberFormat('es-AR', {
 export function formatAmount(value: number): string {
   return currency.format(value)
 }
+
+const inputNumber = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 })
+
+/** 1234.56 → "1.234,56": el monto como se escribe en el formulario. */
+export function formatAmountInput(value: number): string {
+  return inputNumber.format(value)
+}

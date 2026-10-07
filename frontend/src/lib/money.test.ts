@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatAmount, parseAmount } from './money'
+import { formatAmount, formatAmountInput, parseAmount } from './money'
 
 describe('parseAmount', () => {
   it.each([
@@ -36,5 +36,16 @@ describe('formatAmount', () => {
     // Intl separa el símbolo con un espacio no separable.
     expect(formatAmount(1234.56).replace(/\s/g, ' ')).toBe('$ 1.234,56')
     expect(formatAmount(300000).replace(/\s/g, ' ')).toBe('$ 300.000,00')
+  })
+})
+
+describe('formatAmountInput', () => {
+  it.each([
+    [1234.56, '1.234,56'],
+    [15000, '15.000'],
+    [0.5, '0,5'],
+  ])('muestra %s como %s y se puede volver a leer', (value, text) => {
+    expect(formatAmountInput(value)).toBe(text)
+    expect(parseAmount(text)).toEqual({ ok: true, value })
   })
 })

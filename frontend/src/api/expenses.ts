@@ -23,10 +23,16 @@ export type NewExpense = {
   kind: ExpenseKind
 }
 
+/** Los valores editables de un gasto: todos salvo el tipo. */
+export type ExpenseChanges = Omit<NewExpense, 'kind'>
+
 export const expensesApi = {
   list: (period: Period) => api.get<MonthlyExpense[]>(`/periods/${period}/expenses`),
   create: (period: Period, expense: NewExpense) =>
     api.post<MonthlyExpense>(`/periods/${period}/expenses`, expense),
+  update: (period: Period, expenseId: number, changes: ExpenseChanges) =>
+    api.put<MonthlyExpense>(`/periods/${period}/expenses/${expenseId}`, changes),
+  remove: (period: Period, expenseId: number) => api.delete<void>(`/periods/${period}/expenses/${expenseId}`),
 }
 
 /**

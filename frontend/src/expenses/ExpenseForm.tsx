@@ -1,23 +1,26 @@
 import { useId, useState, type FormEvent } from 'react'
-import { expensesApi, fieldErrors, type ExpenseKind } from '../api/expenses'
-import { parseAmount } from '../lib/money'
+import { expensesApi, fieldErrors, type ExpenseKind, type MonthlyExpense } from '../api/expenses'
+import { formatAmountInput, parseAmount } from '../lib/money'
 import { firstDay, periodLabel, type Period } from '../lib/period'
 
 type Props = {
   period: Period
-  onCreated: () => void
+  /** El gasto a editar. Sin él, el formulario da de alta uno nuevo. */
+  expense?: MonthlyExpense
+  onSaved: () => void
   onCancel: () => void
 }
 
 type Errors = Partial<Record<'name' | 'amount' | 'description' | 'dueDate' | 'kind' | 'form', string>>
 
-/** Alta de un gasto en el mes visualizado (RF-01 a RF-05). */
-export function ExpenseForm({ period, onCreated, onCancel }: Props) {
+/** Alta (RF-01 a RF-05) o edición (RF-09) de un gasto del mes visualizado. */
+export function ExpenseForm({ period, expense, onSaved, onCancel }: Props) {
   const id = useId()
-  const [name, setName] = useState('')
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
-  const [dueDate, setDueDate] = useState('')
+  const editing = expense !== undefined
+  const [name, setName] = useState(expense?.name ?? '')
+  const [amount, setAmount] = useState(expense ? formatAmountInput(expense.amount) : '')
+  const [description, setDescription] = useState(expense?.description ?? '')
+  const [dueDate, setDueDate] = useState(expense?.dueDate ?? '')
   const [kind, setKind] = useState<ExpenseKind>('oneOff')
   const [errors, setErrors] = useState<Errors>({})
   const [saving, setSaving] = useState(false)
@@ -42,16 +45,21 @@ export function ExpenseForm({ period, onCreated, onCancel }: Props) {
       return
     }
 
+    const values = {
+      name: name.trim(),
+      description: description.trim() || null,
+      amount: parsedAmount.value,
+      dueDate: dueDate || null,
+    }
+
     setSaving(true)
     try {
-      await expensesApi.create(period, {
-        name: name.trim(),
-        description: description.trim() || null,
-        amount: parsedAmount.value,
-        dueDate: dueDate || null,
-        kind,
-      })
-      onCreated()
+      if (editing) {
+        await expensesApi.update(period, expense.expenseId, values)
+      } else {
+        await expensesApi.create(period, { ...values, kind })
+      }
+      onSaved()
     } catch (error) {
       setErrors(fieldErrors(error) ?? { form: 'No se pudo guardar el gasto. Probá de nuevo.' })
     } finally {
@@ -69,8 +77,8 @@ export function ExpenseForm({ period, onCreated, onCancel }: Props) {
   const describedBy = (field: keyof Errors) => (errors[field] ? `${id}-${field}-error` : undefined)
 
   return (
-    <form className="expense-form" onSubmit={handleSubmit} noValidate aria-label="Nuevo gasto">
-      <h3>Nuevo gasto en {periodLabel(period)}</h3>
+    <form className="expense-form" onSubmit={handleSubmit} noValidate aria-label={editing ? 'Editar gasto' : 'Nuevo gasto'}>
+      <h3>{editing ? `Editar ${expense.name}` : `Nuevo gasto en ${periodLabel(period)}`}</h3>
 
       <div className="field">
         <label htmlFor={`${id}-name`}>Nombre</label>
@@ -99,20 +107,22 @@ export function ExpenseForm({ period, onCreated, onCancel }: Props) {
         {fieldError('amount')}
       </div>
 
-      <fieldset className="field">
-        <legend>Tipo</legend>
-        <div className="radio-group">
-          <label>
-            <input type="radio" name={`${id}-kind`} checked={kind === 'oneOff'} onChange={() => setKind('oneOff')} />
-            Puntual
-          </label>
-          <label>
-            <input type="radio" name={`${id}-kind`} checked={kind === 'recurring'} onChange={() => setKind('recurring')} />
-            Recurrente
-          </label>
-        </div>
-        {fieldError('kind')}
-      </fieldset>
+      {!editing && (
+        <fieldset className="field">
+          <legend>Tipo</legend>
+          <div className="radio-group">
+            <label>
+              <input type="radio" name={`${id}-kind`} checked={kind === 'oneOff'} onChange={() => setKind('oneOff')} />
+              Puntual
+            </label>
+            <label>
+              <input type="radio" name={`${id}-kind`} checked={kind === 'recurring'} onChange={() => setKind('recurring')} />
+              Recurrente
+            </label>
+          </div>
+          {fieldError('kind')}
+        </fieldset>
+      )}
 
       <div className="field">
         <label htmlFor={`${id}-dueDate`}>
