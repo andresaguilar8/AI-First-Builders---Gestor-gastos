@@ -7,7 +7,12 @@ import { MonthNavigator } from './MonthNavigator'
 
 type Result = { status: 'error' } | { status: 'ready'; expenses: MonthlyExpense[] }
 
-export function ExpensesPage() {
+type Props = {
+  /** Se llama cuando se crea, edita, elimina o paga un gasto. */
+  onExpensesChanged?: () => void
+}
+
+export function ExpensesPage({ onExpensesChanged }: Props = {}) {
   // RF-34: se arranca en el mes actual.
   const [period, setPeriod] = useState<Period>(() => currentPeriod())
   const [reloadKey, setReloadKey] = useState(0)
@@ -33,11 +38,17 @@ export function ExpensesPage() {
   // Pagar o desmarcar no vuelve a pedir la lista: se reemplaza el gasto con
   // lo que devolvió la API (AC-35: sin recargar la página).
   function replaceExpense(updated: MonthlyExpense) {
+    onExpensesChanged?.()
     setResult((current) =>
       current?.status === 'ready'
         ? { ...current, expenses: current.expenses.map((e) => (e.expenseId === updated.expenseId ? updated : e)) }
         : current,
     )
+  }
+
+  function reload() {
+    onExpensesChanged?.()
+    setReloadKey((key) => key + 1)
   }
 
   function changePeriod(next: Period) {
@@ -56,7 +67,7 @@ export function ExpensesPage() {
           onCancel={() => setAdding(false)}
           onSaved={() => {
             setAdding(false)
-            setReloadKey((key) => key + 1)
+            reload()
           }}
         />
       ) : (
@@ -78,7 +89,7 @@ export function ExpensesPage() {
         <ExpenseList
           period={period}
           expenses={state.expenses}
-          onChanged={() => setReloadKey((key) => key + 1)}
+          onChanged={reload}
           onUpdated={replaceExpense}
         />
       )}
