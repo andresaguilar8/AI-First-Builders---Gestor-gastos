@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from 'react'
-import { expensesApi, fieldErrors, type ExpenseKind, type MonthlyExpense } from '../api/expenses'
+import { fieldErrors } from '../api/client'
+import { expensesApi, type ExpenseKind, type MonthlyExpense } from '../api/expenses'
 import { formatAmountInput, parseAmount } from '../lib/money'
 import { firstDay, periodLabel, type Period } from '../lib/period'
 

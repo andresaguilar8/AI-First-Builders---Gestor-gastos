@@ -33,3 +33,20 @@ export const api = {
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
   delete: <T>(path: string) => request<T>('DELETE', path),
 }
+
+/**
+ * Los errores por campo de una respuesta 400 de validación, con el primer
+ * mensaje de cada campo. Null si el error es de otro tipo.
+ */
+export function fieldErrors(error: unknown): Record<string, string> | null {
+  if (!(error instanceof ApiError) || error.status !== 400) {
+    return null
+  }
+
+  const errors = (error.body as { errors?: Record<string, string[]> } | undefined)?.errors
+  if (!errors) {
+    return null
+  }
+
+  return Object.fromEntries(Object.entries(errors).map(([field, messages]) => [field, messages[0]]))
+}

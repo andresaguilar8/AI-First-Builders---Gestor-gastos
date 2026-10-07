@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { expensesApi, fieldErrors, type MonthlyExpense } from '../api/expenses'
+import { fieldErrors } from '../api/client'
+import { expensesApi, type MonthlyExpense } from '../api/expenses'
 import { formatAmount } from '../lib/money'
 import { formatDate, type Period } from '../lib/period'
 import { DueStatusBadge } from './DueStatusBadge'
