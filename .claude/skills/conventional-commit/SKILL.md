@@ -1,6 +1,6 @@
 ---
 name: conventional-commit
-description: Redacta y crea commits con formato Conventional Commits (tipo(scope): descripción en imperativo) a partir de los cambios reales del repo. Se usa cuando el usuario pide hacer, crear o redactar un commit, o commitear cambios.
+description: "Redacta y crea commits con formato Conventional Commits (tipo(scope): descripción en imperativo) a partir de los cambios reales del repo. Se usa cuando el usuario pide hacer, crear o redactar un commit, o commitear cambios."
 ---
 
 # Conventional Commit
