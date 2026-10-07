@@ -1,3 +1,4 @@
+using GestorGastos.Categories;
 using GestorGastos.Expenses;
 using GestorGastos.Time;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Expense> Expenses => Set<Expense>();
 
     public DbSet<ExpenseMonth> ExpenseMonths => Set<ExpenseMonth>();
+
+    public DbSet<Category> Categories => Set<Category>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

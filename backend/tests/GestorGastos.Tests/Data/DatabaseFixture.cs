@@ -35,7 +35,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     public async Task ResetAsync()
     {
         await using var db = CreateContext();
-        await db.Database.ExecuteSqlRawAsync("TRUNCATE expense_months, expenses RESTART IDENTITY CASCADE");
+        await db.Database.ExecuteSqlRawAsync("TRUNCATE expense_months, expenses, categories RESTART IDENTITY CASCADE");
     }
 }
 

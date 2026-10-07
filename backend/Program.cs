@@ -1,3 +1,4 @@
+using GestorGastos.Categories;
 using GestorGastos.Data;
 using GestorGastos.Expenses;
 using GestorGastos.Time;
@@ -40,6 +41,7 @@ app.MapGet("/api/health", async (AppDbContext db, IClock clock) =>
 });
 
 app.MapExpenseEndpoints();
+app.MapCategoryEndpoints();
 
 app.Run();
 
