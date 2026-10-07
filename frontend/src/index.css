@@ -298,7 +298,11 @@ button.danger {
 .month-nav__title {
   font-size: 1.125rem;
   text-align: center;
-  text-transform: capitalize;
+}
+
+/* "Octubre de 2026": solo la primera letra en mayúscula. */
+.month-nav__title::first-letter {
+  text-transform: uppercase;
 }
 
 .month-nav__jump {
