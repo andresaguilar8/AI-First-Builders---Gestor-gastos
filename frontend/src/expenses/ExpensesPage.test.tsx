@@ -42,6 +42,12 @@ function mockApi(byPeriod: Record<string, MonthlyExpense[]> = {}, categories = [
     if (url === '/api/categories') {
       return json(categories)
     }
+    const summaryPeriod = /\/periods\/(\d{4}-\d{2})\/summary/.exec(url)?.[1]
+    if (summaryPeriod) {
+      const month = byPeriod[summaryPeriod] ?? []
+      const sum = (list: MonthlyExpense[]) => list.reduce((total, e) => total + e.amount, 0)
+      return json({ period: summaryPeriod, total: sum(month), pending: sum(month.filter((e) => !e.paidOn)), byCategory: [] })
+    }
     const [, period = '', id, payment] = /\/periods\/(\d{4}-\d{2})\/expenses(?:\/(\d+))?(\/payment)?/.exec(url) ?? []
     const expenses = byPeriod[period] ?? []
     if (payment) {
@@ -295,5 +301,22 @@ describe('ExpensesPage', () => {
 
     await waitFor(() => expect(expenseRequests(fetchMock)).toHaveLength(2))
     expect(requestedUrls(fetchMock).filter((url) => url === '/api/categories')).toHaveLength(2)
+  })
+
+  it('muestra el resumen del mes y lo actualiza al pagar un gasto', async () => {
+    // AC-34
+    const fetchMock = mockApi({ '2026-10': [{ ...expense('Luz', '2026-10'), amount: 1500 }] })
+    const user = userEvent.setup()
+    render(<ExpensesPage />)
+    const pending = () => screen.getByText('Pendiente de pago').nextElementSibling?.textContent?.replace(/\s/g, ' ')
+
+    await waitFor(() => expect(pending()).toBe('$ 1.500,00'))
+    await user.click(await screen.findByRole('button', { name: 'Marcar Luz como pagado' }))
+
+    await waitFor(() => expect(pending()).toBe('$ 0,00'))
+    expect(requestedUrls(fetchMock).filter((url) => url.endsWith('/summary'))).toEqual([
+      '/api/periods/2026-10/summary',
+      '/api/periods/2026-10/summary',
+    ])
   })
 })

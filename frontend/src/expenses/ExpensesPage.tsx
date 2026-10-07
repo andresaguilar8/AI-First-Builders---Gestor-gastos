@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { categoriesApi, type Category } from '../api/categories'
 import { expensesApi, type MonthlyExpense } from '../api/expenses'
 import { currentPeriod, type Period } from '../lib/period'
+import { MonthSummary } from '../summary/MonthSummary'
 import { ExpenseForm } from './ExpenseForm'
 import { ExpenseList } from './ExpenseList'
 import { MonthNavigator } from './MonthNavigator'
@@ -20,6 +21,8 @@ export function ExpensesPage({ onExpensesChanged, categoriesKey = 0 }: Props = {
   const [period, setPeriod] = useState<Period>(() => currentPeriod())
   const [reloadKey, setReloadKey] = useState(0)
   const [adding, setAdding] = useState(false)
+  // Pagar o desmarcar no recarga la lista, pero sí cambia el pendiente del resumen.
+  const [paymentsVersion, setPaymentsVersion] = useState(0)
 
   // Cada resultado queda asociado a la carga que lo pidió. Mientras no llegue
   // el de la carga actual, la lista está cargando.
@@ -55,6 +58,7 @@ export function ExpensesPage({ onExpensesChanged, categoriesKey = 0 }: Props = {
   // lo que devolvió la API (AC-35: sin recargar la página).
   function replaceExpense(updated: MonthlyExpense) {
     onExpensesChanged?.()
+    setPaymentsVersion((version) => version + 1)
     setResult((current) =>
       current?.status === 'ready'
         ? { ...current, expenses: current.expenses.map((e) => (e.expenseId === updated.expenseId ? updated : e)) }
@@ -75,6 +79,8 @@ export function ExpensesPage({ onExpensesChanged, categoriesKey = 0 }: Props = {
   return (
     <section className="expenses-page">
       <MonthNavigator period={period} onChange={changePeriod} />
+
+      <MonthSummary period={period} refreshKey={`${loadKey}#${paymentsVersion}`} />
 
       {adding ? (
         <ExpenseForm

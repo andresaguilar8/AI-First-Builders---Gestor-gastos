@@ -21,6 +21,8 @@
   --status-duetoday-bg: #ffead5;
   --status-overdue: #b42318;
   --status-overdue-bg: #fde8e7;
+  --bar-fill: #2563eb;
+  --bar-track: #dbe6fd;
   --radius: 10px;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -53,6 +55,8 @@
     --status-duetoday-bg: #42260f;
     --status-overdue: #ff8a80;
     --status-overdue-bg: #451c1a;
+    --bar-fill: #5b8cff;
+    --bar-track: #233154;
   }
 }
 
@@ -319,6 +323,97 @@ button.danger {
 
 .month-nav__jump input {
   flex: 0 0 88px;
+}
+
+/* Resumen del mes */
+.summary {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.summary__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.summary__tile dt {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.summary__tile dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.summary__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.category-totals {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category-total__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 3.5em;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.category-total__name {
+  overflow-wrap: anywhere;
+}
+
+.category-total__name--none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.category-total__amount,
+.category-total__share {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.category-total__share {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Barra de magnitud: crece desde la izquierda, extremo de datos redondeado. */
+.category-total__track {
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--bar-track);
+}
+
+.category-total__bar {
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--bar-fill);
+}
+
+@media (forced-colors: active) {
+  .category-total__bar {
+    background: CanvasText;
+  }
 }
 
 /* Lista de gastos */
