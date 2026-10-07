@@ -17,9 +17,26 @@ public static class ExpenseRules
     /// </summary>
     public static Dictionary<string, string[]> ValidateCreate(CreateExpenseRequest request, Period period)
     {
+        var errors = ValidateValues(request.Name, request.Description, request.Amount, request.DueDate, period);
+
+        if (request.Kind is null)
+        {
+            errors["kind"] = ["Indicá si el gasto es puntual o recurrente."];
+        }
+
+        return errors;
+    }
+
+    /// <summary>Valida una edición de un gasto de <paramref name="period"/>.</summary>
+    public static Dictionary<string, string[]> ValidateUpdate(UpdateExpenseRequest request, Period period) =>
+        ValidateValues(request.Name, request.Description, request.Amount, request.DueDate, period);
+
+    private static Dictionary<string, string[]> ValidateValues(
+        string? name, string? description, decimal? amount, DateOnly? dueDate, Period period)
+    {
         var errors = new Dictionary<string, string[]>();
 
-        var name = request.Name?.Trim();
+        name = name?.Trim();
         if (string.IsNullOrEmpty(name))
         {
             errors["name"] = ["El nombre es obligatorio."];
@@ -29,24 +46,19 @@ public static class ExpenseRules
             errors["name"] = [$"El nombre no puede superar los {NameMaxLength} caracteres."];
         }
 
-        if (request.Description?.Trim().Length > DescriptionMaxLength)
+        if (description?.Trim().Length > DescriptionMaxLength)
         {
             errors["description"] = [$"La descripción no puede superar los {DescriptionMaxLength} caracteres."];
         }
 
-        if (AmountError(request.Amount) is { } amountError)
+        if (AmountError(amount) is { } amountError)
         {
             errors["amount"] = [amountError];
         }
 
-        if (request.DueDate is { } dueDate && dueDate < period.FirstDay)
+        if (dueDate is { } date && date < period.FirstDay)
         {
             errors["dueDate"] = ["El vencimiento no puede ser de un mes anterior al del gasto."];
-        }
-
-        if (request.Kind is null)
-        {
-            errors["kind"] = ["Indicá si el gasto es puntual o recurrente."];
         }
 
         return errors;
@@ -65,17 +77,46 @@ public static class ExpenseRules
     public static Expense CreateExpense(CreateExpenseRequest request, Period period)
     {
         var kind = request.Kind!.Value;
-        var description = request.Description?.Trim();
 
         return new Expense
         {
             Name = request.Name!.Trim(),
-            Description = string.IsNullOrEmpty(description) ? null : description,
+            Description = NormalizeDescription(request.Description),
             Amount = request.Amount!.Value,
             DueDate = request.DueDate,
             Kind = kind,
             StartPeriod = period,
             EndPeriod = kind == ExpenseKind.OneOff ? period : null,
         };
+    }
+
+    /// <summary>
+    /// Aplica una edición ya validada a un gasto puntual y, si la tiene, a su
+    /// instancia del mes, que conserva su estado de pago.
+    /// </summary>
+    public static void ApplyUpdate(Expense expense, ExpenseMonth? ownMonth, UpdateExpenseRequest request)
+    {
+        var name = request.Name!.Trim();
+        var description = NormalizeDescription(request.Description);
+        var amount = request.Amount!.Value;
+
+        expense.Name = name;
+        expense.Description = description;
+        expense.Amount = amount;
+        expense.DueDate = request.DueDate;
+
+        if (ownMonth is not null)
+        {
+            ownMonth.Name = name;
+            ownMonth.Description = description;
+            ownMonth.Amount = amount;
+            ownMonth.DueDate = request.DueDate;
+        }
+    }
+
+    private static string? NormalizeDescription(string? description)
+    {
+        description = description?.Trim();
+        return string.IsNullOrEmpty(description) ? null : description;
     }
 }
