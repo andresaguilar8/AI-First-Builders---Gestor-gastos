@@ -49,6 +49,17 @@ public readonly record struct Period : IComparable<Period>
 
     public DateOnly LastDay => new(Year, Month, DateTime.DaysInMonth(Year, Month));
 
+    /// <summary>
+    /// La fecha de este mes con el día indicado. Si el mes no tiene ese día,
+    /// devuelve el último día del mes (RF-07).
+    /// </summary>
+    public DateOnly DateOnDay(int day)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(day, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(day, 31);
+        return new DateOnly(Year, Month, Math.Min(day, LastDay.Day));
+    }
+
     public bool Contains(DateOnly date) => date.Year == Year && date.Month == Month;
 
     public int CompareTo(Period other) => (Year, Month).CompareTo((other.Year, other.Month));

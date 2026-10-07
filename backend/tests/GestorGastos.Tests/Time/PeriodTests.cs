@@ -65,4 +65,15 @@ public class PeriodTests
         Assert.True(october.Contains(new DateOnly(2026, 10, 31)));
         Assert.False(october.Contains(new DateOnly(2026, 11, 1)));
     }
+
+    [Theory]
+    [InlineData(2027, 2, 30, 28)]
+    [InlineData(2028, 2, 31, 29)]
+    [InlineData(2026, 9, 31, 30)]
+    [InlineData(2027, 3, 30, 30)]
+    [InlineData(2026, 10, 5, 5)]
+    public void DateOnDay_usa_el_ultimo_dia_si_el_mes_no_tiene_ese_dia(int year, int month, int day, int expectedDay)
+    {
+        Assert.Equal(new DateOnly(year, month, expectedDay), new Period(year, month).DateOnDay(day));
+    }
 }

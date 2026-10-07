@@ -1,4 +1,5 @@
 using GestorGastos.Data;
+using GestorGastos.Expenses;
 using GestorGastos.Time;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IClock, BuenosAiresClock>();
+builder.Services.AddScoped<MonthlyExpenses>();
 
 var app = builder.Build();
 
